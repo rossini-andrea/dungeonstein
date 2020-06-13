@@ -1,0 +1,6 @@
+ShaderProgramRon(
+    shaders: [
+        "vertexShader.glsl",
+        "fragmentShader.glsl"
+    ]
+)
