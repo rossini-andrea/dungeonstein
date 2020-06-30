@@ -57,30 +57,6 @@ fn main() {
     let mut start = SystemTime::now();
 
     'running: loop {
-        canvas.window().gl_set_context_to_current().unwrap();
-
-        unsafe {
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
-
-        renderer.render(
-            &game.current_map, ViewSettings {
-                pos: game.player.pos,
-                facing: game.player.direction,
-                height: 1.77
-            }
-        );
-        canvas.present();
-
-        frames += 1;
-
-        if start.elapsed().unwrap_or(Duration::from_secs(0)).as_secs() >= 10 {
-            println!("{} FPS", frames / 10);
-            start = SystemTime::now();
-            frames = 0;
-        }
-
         game.player.speed = Vec3::new(0.0, 0.0, 0.0);
 
         for event in event_pump.poll_iter() {
@@ -120,5 +96,29 @@ fn main() {
         }
 
         game.player.pos += game.player.speed;
+
+        canvas.window().gl_set_context_to_current().unwrap();
+
+        unsafe {
+            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+        }
+
+        renderer.render(
+            &game.current_map, ViewSettings {
+                pos: game.player.pos,
+                facing: game.player.direction,
+                height: 1.77
+            }
+        );
+        canvas.present();
+
+        frames += 1;
+
+        if start.elapsed().unwrap_or(Duration::from_secs(0)).as_secs() >= 10 {
+            println!("{} FPS", frames / 10);
+            start = SystemTime::now();
+            frames = 0;
+        }
     }
 }

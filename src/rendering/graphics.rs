@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use glm::{Vec3};
 use na::base::Matrix4;
 use gl::types::GLuint;
@@ -44,16 +45,16 @@ impl<'r> DungeonGraphics<'r> {
             .unwrap();
         let wall_vertex_array = GlVertexArray::from_vertex_buffer(
             &[
-                -0.75, -0.75, 0.0,    0.0, 0.0,
-                0.75, -0.75, 0.0,    1.0, 0.0,
-                0.75, -0.75, 3.0,    1.0, 2.0,
-                -0.75, -0.75, 3.0,    0.0, 2.0,
-                0.75,  0.75, 0.0,    2.0, 0.0,
-                0.75,  0.75, 3.0,    2.0, 2.0,
-                -0.75,  0.75, 0.0,    3.0, 0.0,
-                -0.75,  0.75, 3.0,    3.0, 2.0,
-                -0.75, -0.75, 0.0,    4.0, 0.0,
-                -0.75, -0.75, 3.0,    4.0, 2.0,
+                0.0, 0.0, 0.0,    0.0, 0.0,
+                2.0, 0.0, 0.0,    1.0, 0.0,
+                2.0, 0.0, 2.0,    1.0, 1.0,
+                0.0, 0.0, 2.0,    0.0, 1.0,
+                2.0,  2.0, 0.0,    2.0, 0.0,
+                2.0,  2.0, 2.0,    2.0, 1.0,
+                0.0,  2.0, 0.0,    3.0, 0.0,
+                0.0,  2.0, 2.0,    3.0, 1.0,
+                0.0, 0.0, 0.0,    4.0, 0.0,
+                0.0, 0.0, 2.0,    4.0, 1.0,
             ],
             &[
                 0, 1, 2,
@@ -69,10 +70,10 @@ impl<'r> DungeonGraphics<'r> {
         );
         let floor_vertex_array = GlVertexArray::from_vertex_buffer(
             &[
-                -0.75, -0.75, 0.0,    0.0, 0.0,
-                 0.75, -0.75, 0.0,    1.0, 0.0,
-                 0.75,  0.75, 0.0,    1.0, 1.0,
-                -0.75,  0.75, 0.0,    0.0, 1.0,
+                0.0, 0.0, 0.0,    0.0, 0.0,
+                2.0, 0.0, 0.0,    1.0, 0.0,
+                2.0, 2.0, 0.0,    1.0, 1.0,
+                0.0, 2.0, 0.0,    0.0, 1.0,
             ], &[0, 1, 2, 0, 2, 3], &[(a_position, 3), (a_tex_coord, 2)]
         );
         let uniforms = Uniforms::from_program(&shader_program);
@@ -151,17 +152,17 @@ impl<'r> GlEngine<'r> {
     fn render_world(&mut self, world: &DungeonFloor, view_settings: &ViewSettings) {
         let _prg_bind = Bind::new(&self.world_graphics.shader_program);
         let projection_matrix: [[f32; 4]; 4] = glm::perspective(
-            8.0 / 6.0, 3.14 * 0.4, 0.1, 100.0
+            8.0 / 6.0, PI * 0.4, 0.1, 100.0
         ).into();
         let view_matrix: [[f32; 4]; 4] = glm::look_at(
             &Vec3::new(
-                view_settings.pos[0] as f32 * 1.5,
-                view_settings.pos[1] as f32 * 1.5,
+                view_settings.pos[0],
+                view_settings.pos[1],
                 view_settings.height
             ),
             &Vec3::new(
-                (view_settings.pos[0] + view_settings.facing[0]) as f32 * 1.5,
-                (view_settings.pos[1] + view_settings.facing[1]) as f32 * 1.5,
+                (view_settings.pos[0] + view_settings.facing[0]) as f32,
+                (view_settings.pos[1] + view_settings.facing[1]) as f32,
                 view_settings.height
             ),
             &Vec3::new(0.0, 0.0, 1.0)).into();
@@ -181,17 +182,17 @@ impl<'r> GlEngine<'r> {
         for x in 0..w {
             for y in 0..world.height {
                 let model_matrix: [[f32; 4]; 4] = glm::translation(
-                    &Vec3::new(x as f32 * 1.5, y as f32 * 1.5, 0.0)
+                    &Vec3::new(x as f32 * 2.0, y as f32 * 2.0, 0.0)
                 ).into();
                 unsafe { gl::UniformMatrix4fv(self.world_graphics.uniforms.u_model_matrix, 1,
                     gl::FALSE, &model_matrix[0][0] as *const f32); }
 
-                match world.cells[x + y * w] {
+                match world[(x, y)] {
                     Floor => {
                         let _vertex_bind = Bind::new(&self.world_graphics.floor_vertex_array);
                         unsafe {
                             self.world_graphics.floor_texture.gl_bind_texture();
-                            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const std::ffi::c_void);
+                            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null::<std::ffi::c_void>());
                             self.world_graphics.floor_texture.gl_unbind_texture();
                         }
                     }
@@ -199,7 +200,7 @@ impl<'r> GlEngine<'r> {
                         let _vertex_bind = Bind::new(&self.world_graphics.wall_vertex_array);
                         unsafe {
                             self.world_graphics.wall_texture.gl_bind_texture();
-                            gl::DrawElements(gl::TRIANGLES, 24, gl::UNSIGNED_INT, 0 as *const std::ffi::c_void);
+                            gl::DrawElements(gl::TRIANGLES, 24, gl::UNSIGNED_INT, std::ptr::null::<std::ffi::c_void>());
                             self.world_graphics.wall_texture.gl_unbind_texture();
                         }
                     }

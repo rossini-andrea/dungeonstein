@@ -1,21 +1,10 @@
 //! Defines the game model.
+mod dungeonfloor;
 
 use slotmap::{ SlotMap, new_key_type };
 use glm::{Vec3};
 
-pub enum DungeonCell {
-    Empty,
-    Wall,
-    Floor,
-    Door,
-    OpenDoor
-}
-
-pub struct DungeonFloor {
-    pub width: usize,
-    pub height: usize,
-    pub cells: Vec<DungeonCell>,
-}
+pub use dungeonfloor::{DungeonCell, DungeonFloor};
 
 /// The player will be dismembered in components when the 3d engine is stable
 /// enough
